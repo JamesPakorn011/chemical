@@ -1,0 +1,861 @@
+
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>แบบทดสอบวิชาเคมี - อะตอมและตารางธาตุ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Prompt', sans-serif;
+            background-color: #fff5f7;
+        }
+        .quiz-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 1rem;
+            box-shadow: 0 10px 25px rgba(252, 186, 211, 0.5);
+        }
+        .progress-bar {
+            height: 8px;
+            background-color: #f8bbd0;
+            border-radius: 4px;
+            transition: width 1s linear;
+        }
+        .btn-pink {
+            background-color: #ec4899;
+            color: white;
+            transition: all 0.3s ease;
+        }
+        .btn-pink:hover {
+            background-color: #db2777;
+            transform: translateY(-2px);
+        }
+        .btn-outline {
+            border: 2px solid #ec4899;
+            color: #ec4899;
+            transition: all 0.3s ease;
+        }
+        .btn-outline:hover {
+            background-color: #ec4899;
+            color: white;
+        }
+        .question-nav-item {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .question-nav-item.active {
+            background-color: #ec4899;
+            color: white;
+        }
+        .question-nav-item.answered {
+            background-color: #f8bbd0;
+            color: #9c27b0;
+        }
+        .option-label {
+            border: 2px solid #f8bbd0;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        .option-label:hover {
+            border-color: #ec4899;
+            background-color: #fff5f7;
+        }
+        .option-input:checked + .option-label {
+            border-color: #ec4899;
+            background-color: #fce7f3;
+        }
+        .correct-answer {
+            border-color: #4ade80 !important;
+            background-color: #dcfce7 !important;
+        }
+        .wrong-answer {
+            border-color: #f87171 !important;
+            background-color: #fee2e2 !important;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease forwards;
+        }
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .shake {
+            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+        }
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+    </style>
+</head>
+<body class="min-h-screen py-8">
+    <!-- Registration Screen -->
+    <div id="registration-screen" class="quiz-container p-8 fade-in">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-pink-600 mb-2">แบบทดสอบวิชาเคมี</h1>
+            <h2 class="text-xl text-pink-500">มัธยมศึกษาปีที่ 4 เรื่อง อะตอมและตารางธาตุ</h2>
+        </div>
+        
+        <div class="bg-pink-50 p-6 rounded-lg mb-6">
+            <h3 class="text-lg font-medium text-pink-700 mb-3">กรุณากรอกข้อมูลก่อนเริ่มทำแบบทดสอบ</h3>
+            <div class="mb-4">
+                <label for="student-name" class="block text-sm font-medium text-pink-700 mb-1">ชื่อ-นามสกุล</label>
+                <input type="text" id="student-name" class="w-full px-4 py-2 border border-pink-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500" placeholder="กรุณากรอกชื่อ-นามสกุล" required>
+                <p id="name-error" class="text-red-500 text-sm mt-1 hidden">กรุณากรอกชื่อ-นามสกุลก่อนเริ่มทำแบบทดสอบ</p>
+            </div>
+            
+            <div class="text-center">
+                <button id="start-quiz-btn" class="btn-pink px-6 py-2 rounded-full font-medium flex items-center justify-center mx-auto">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
+                    </svg>
+                    <span id="start-btn-text">เริ่มทำแบบทดสอบ</span>
+                    <span id="loading-spinner" class="loading ml-2 hidden"></span>
+                </button>
+            </div>
+        </div>
+        
+        <div class="bg-pink-50 p-6 rounded-lg">
+            <h3 class="text-lg font-medium text-pink-700 mb-3">คำแนะนำ</h3>
+            <ul class="list-disc pl-5 space-y-2 text-pink-800">
+                <li>แบบทดสอบมีทั้งหมด 20 ข้อ</li>
+                <li>แต่ละข้อมีเวลาทำ 5 นาที</li>
+                <li>ต้องตอบคำถามก่อนไปข้อถัดไป</li>
+                <li>สามารถย้อนกลับไปดูข้อก่อนหน้าได้</li>
+                <li>เมื่อทำครบทุกข้อ ระบบจะแสดงผลคะแนนและเฉลย</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Quiz Screen -->
+    <div id="quiz-screen" class="quiz-container hidden">
+        <!-- Header -->
+        <div class="bg-gradient-to-r from-pink-500 to-pink-600 text-white p-6 rounded-t-lg">
+            <h1 class="text-xl md:text-2xl font-bold text-center">วิชาเคมี มัธยมศึกษาปีที่ 4</h1>
+            <h2 class="text-lg md:text-xl text-center">เรื่อง อะตอมและตารางธาตุ</h2>
+            
+            <div class="flex flex-col md:flex-row justify-between items-center mt-4">
+                <div class="flex items-center mb-2 md:mb-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
+                    </svg>
+                    <span id="timer" class="font-medium">05:00</span>
+                </div>
+                
+                <div class="flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
+                        <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd" />
+                    </svg>
+                    <span id="question-counter" class="font-medium">1/20</span>
+                </div>
+            </div>
+            
+            <div class="mt-3">
+                <div class="w-full bg-white/30 rounded-full h-2">
+                    <div id="time-progress" class="progress-bar w-full"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Question Navigation -->
+        <div class="bg-pink-50 p-4 overflow-x-auto">
+            <div class="flex space-x-2 min-w-max" id="question-nav">
+                <!-- Question navigation buttons will be generated here -->
+            </div>
+        </div>
+        
+        <!-- Question Content -->
+        <div class="p-6" id="question-container">
+            <!-- Questions will be loaded here -->
+        </div>
+        
+        <!-- Navigation Buttons -->
+        <div class="p-6 border-t border-pink-100 flex justify-between">
+            <button id="prev-btn" class="btn-outline px-4 py-2 rounded-full font-medium flex items-center disabled:opacity-50 disabled:cursor-not-allowed">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                </svg>
+                ข้อก่อนหน้า
+            </button>
+            
+            <button id="next-btn" class="btn-pink px-4 py-2 rounded-full font-medium flex items-center">
+                ข้อถัดไป
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                </svg>
+            </button>
+        </div>
+    </div>
+    
+    <!-- Results Screen -->
+    <div id="results-screen" class="quiz-container p-8 hidden fade-in">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-pink-600 mb-2">ผลการทดสอบ</h1>
+            <h2 class="text-xl text-pink-500">วิชาเคมี มัธยมศึกษาปีที่ 4 เรื่อง อะตอมและตารางธาตุ</h2>
+        </div>
+        
+        <div class="bg-pink-50 p-6 rounded-lg mb-6">
+            <h3 class="text-lg font-medium text-pink-700 mb-1">ผู้ทำแบบทดสอบ</h3>
+            <p id="result-student-name" class="text-xl font-medium text-pink-800 mb-4">-</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div class="bg-white p-4 rounded-lg shadow-sm">
+                    <h4 class="text-sm text-pink-500 mb-1">คะแนนที่ได้</h4>
+                    <p id="score-value" class="text-3xl font-bold text-pink-600">0/20</p>
+                </div>
+                <div class="bg-white p-4 rounded-lg shadow-sm">
+                    <h4 class="text-sm text-pink-500 mb-1">คิดเป็นร้อยละ</h4>
+                    <p id="score-percent" class="text-3xl font-bold text-pink-600">0%</p>
+                </div>
+            </div>
+            
+            <div class="w-full bg-pink-200 rounded-full h-4 mb-2">
+                <div id="score-progress" class="bg-pink-500 h-4 rounded-full" style="width: 0%"></div>
+            </div>
+            
+            <p id="score-feedback" class="text-center text-pink-700 font-medium mt-2">-</p>
+        </div>
+        
+        <div class="mb-6">
+            <h3 class="text-lg font-medium text-pink-700 mb-3">เฉลยแบบทดสอบ</h3>
+            <div id="answers-container" class="space-y-4">
+                <!-- Answers will be loaded here -->
+            </div>
+        </div>
+        
+        <div class="text-center">
+            <button id="restart-btn" class="btn-pink px-6 py-2 rounded-full font-medium flex items-center justify-center mx-auto">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd" />
+                </svg>
+                เริ่มทำแบบทดสอบใหม่
+            </button>
+        </div>
+    </div>
+    
+    <!-- Footer -->
+    <footer class="max-w-3xl mx-auto mt-8 text-center text-pink-600 p-4">
+        <div class="flex items-center justify-center">
+            <span>พัฒนาโดย ฟ้าใส เด็กเรียน</span>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M6.29 18.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0020 3.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.073 4.073 0 01.8 7.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 010 16.407a11.616 11.616 0 006.29 1.84" />
+            </svg>
+        </div>
+    </footer>
+
+    <script>
+        // Quiz data
+        const quizData = [
+            {
+                question: "อะตอมประกอบด้วยอนุภาคมูลฐานใดบ้าง",
+                options: [
+                    "โปรตอน นิวตรอน อิเล็กตรอน",
+                    "โปรตอน นิวตรอน โพซิตรอน",
+                    "โปรตอน อิเล็กตรอน นิวคลีออน",
+                    "อิเล็กตรอน นิวตรอน ควาร์ก"
+                ],
+                answer: 0,
+                explanation: "อะตอมประกอบด้วยอนุภาคมูลฐาน 3 ชนิด คือ โปรตอน (มีประจุบวก) นิวตรอน (ไม่มีประจุ) และอิเล็กตรอน (มีประจุลบ) โดยโปรตอนและนิวตรอนอยู่ในนิวเคลียส ส่วนอิเล็กตรอนเคลื่อนที่รอบนิวเคลียส"
+            },
+            {
+                question: "ข้อใดคือนิยามของเลขอะตอม (Atomic Number)",
+                options: [
+                    "จำนวนโปรตอนรวมกับจำนวนนิวตรอนในนิวเคลียส",
+                    "จำนวนโปรตอนในนิวเคลียสของอะตอม",
+                    "จำนวนอิเล็กตรอนในวงนอกสุดของอะตอม",
+                    "จำนวนนิวตรอนในนิวเคลียสของอะตอม"
+                ],
+                answer: 1,
+                explanation: "เลขอะตอม (Atomic Number) คือจำนวนโปรตอนในนิวเคลียสของอะตอม ซึ่งเป็นค่าเฉพาะของธาตุแต่ละชนิด และใช้ในการระบุชนิดของธาตุ"
+            },
+            {
+                question: "ข้อใดคือนิยามของเลขมวล (Mass Number)",
+                options: [
+                    "จำนวนโปรตอนรวมกับจำนวนนิวตรอนในนิวเคลียส",
+                    "จำนวนโปรตอนในนิวเคลียสของอะตอม",
+                    "จำนวนอิเล็กตรอนทั้งหมดในอะตอม",
+                    "มวลของอะตอมเทียบกับคาร์บอน-12"
+                ],
+                answer: 0,
+                explanation: "เลขมวล (Mass Number) คือผลรวมของจำนวนโปรตอนและจำนวนนิวตรอนในนิวเคลียสของอะตอม ซึ่งเป็นตัวบอกมวลโดยประมาณของอะตอม"
+            },
+            {
+                question: "ไอโซโทปคืออะไร",
+                options: [
+                    "อะตอมที่มีจำนวนโปรตอนเท่ากันแต่จำนวนนิวตรอนต่างกัน",
+                    "อะตอมที่มีจำนวนนิวตรอนเท่ากันแต่จำนวนโปรตอนต่างกัน",
+                    "อะตอมที่มีจำนวนอิเล็กตรอนเท่ากันแต่จำนวนโปรตอนต่างกัน",
+                    "อะตอมที่มีเลขมวลเท่ากันแต่เลขอะตอมต่างกัน"
+                ],
+                answer: 0,
+                explanation: "ไอโซโทป (Isotope) คืออะตอมของธาตุเดียวกัน (มีจำนวนโปรตอนเท่ากัน) แต่มีจำนวนนิวตรอนต่างกัน ทำให้มีเลขมวลต่างกัน เช่น คาร์บอน-12 และคาร์บอน-14"
+            },
+            {
+                question: "ใครเป็นผู้เสนอแบบจำลองอะตอมแบบกลุ่มหมอก (Electron Cloud Model)",
+                options: [
+                    "เออร์วิน ชเรอดิงเงอร์",
+                    "เออร์เนสต์ รัทเทอร์ฟอร์ด",
+                    "นีลส์ โบร์",
+                    "จอห์น ดอลตัน"
+                ],
+                answer: 0,
+                explanation: "เออร์วิน ชเรอดิงเงอร์ เป็นผู้เสนอแบบจำลองอะตอมแบบกลุ่มหมอก (Electron Cloud Model) หรือแบบจำลองกลศาสตร์ควอนตัม ซึ่งอธิบายว่าไม่สามารถระบุตำแหน่งที่แน่นอนของอิเล็กตรอนได้ แต่สามารถคำนวณความน่าจะเป็นที่จะพบอิเล็กตรอนในบริเวณต่างๆ รอบนิวเคลียสได้"
+            },
+            {
+                question: "ตารางธาตุปัจจุบันจัดเรียงธาตุตามอะไร",
+                options: [
+                    "เลขอะตอม (จำนวนโปรตอน)",
+                    "เลขมวล (จำนวนโปรตอนและนิวตรอน)",
+                    "มวลอะตอม",
+                    "จำนวนอิเล็กตรอนในวงนอกสุด"
+                ],
+                answer: 0,
+                explanation: "ตารางธาตุปัจจุบัน (ตารางธาตุสมัยใหม่) จัดเรียงธาตุตามเลขอะตอม (จำนวนโปรตอน) เรียงจากน้อยไปมาก ซึ่งต่างจากตารางธาตุของเมนเดเลเยฟที่เดิมจัดเรียงตามมวลอะตอม"
+            },
+            {
+                question: "แถวในตารางธาตุเรียกว่าอะไร",
+                options: [
+                    "คาบ (Period)",
+                    "หมู่ (Group)",
+                    "บล็อก (Block)",
+                    "ซีรีส์ (Series)"
+                ],
+                answer: 0,
+                explanation: "แถวในตารางธาตุเรียกว่า คาบ (Period) ซึ่งบ่งบอกถึงระดับพลังงานหลัก (n) หรือเปลือกอิเล็กตรอนที่มีอิเล็กตรอนอยู่ เช่น ธาตุในคาบที่ 2 มีอิเล็กตรอนอยู่ในระดับพลังงานหลักที่ 2 เป็นระดับพลังงานสูงสุด"
+            },
+            {
+                question: "หมู่ในตารางธาตุบ่งบอกถึงอะไร",
+                options: [
+                    "จำนวนอิเล็กตรอนในวงนอกสุด (เวเลนซ์อิเล็กตรอน)",
+                    "จำนวนระดับพลังงาน",
+                    "จำนวนโปรตอนในนิวเคลียส",
+                    "จำนวนนิวตรอนในนิวเคลียส"
+                ],
+                answer: 0,
+                explanation: "หมู่ (Group) ในตารางธาตุบ่งบอกถึงจำนวนอิเล็กตรอนในวงนอกสุด หรือเวเลนซ์อิเล็กตรอน ซึ่งเป็นตัวกำหนดสมบัติทางเคมีของธาตุ ธาตุที่อยู่ในหมู่เดียวกันจะมีสมบัติทางเคมีคล้ายกัน"
+            },
+            {
+                question: "ธาตุในหมู่ 1A (หรือหมู่ 1) ยกเว้นไฮโดรเจน เรียกว่าอะไร",
+                options: [
+                    "โลหะแอลคาไล (Alkali Metals)",
+                    "โลหะแอลคาไลน์เอิร์ท (Alkaline Earth Metals)",
+                    "ธาตุแฮโลเจน (Halogens)",
+                    "แก๊สเฉื่อย (Noble Gases)"
+                ],
+                answer: 0,
+                explanation: "ธาตุในหมู่ 1A (หรือหมู่ 1) ยกเว้นไฮโดรเจน เรียกว่า โลหะแอลคาไล (Alkali Metals) ได้แก่ Li, Na, K, Rb, Cs, Fr ซึ่งเป็นโลหะที่ว่องไวต่อปฏิกิริยาเคมีมาก และทำปฏิกิริยากับน้ำได้สารละลายที่เป็นเบส"
+            },
+            {
+                question: "ธาตุในหมู่ 8A (หรือหมู่ 18) เรียกว่าอะไร",
+                options: [
+                    "แก๊สเฉื่อย (Noble Gases)",
+                    "ธาตุแฮโลเจน (Halogens)",
+                    "โลหะแอลคาไล (Alkali Metals)",
+                    "โลหะแอลคาไลน์เอิร์ท (Alkaline Earth Metals)"
+                ],
+                answer: 0,
+                explanation: "ธาตุในหมู่ 8A (หรือหมู่ 18) เรียกว่า แก๊สเฉื่อย (Noble Gases) ได้แก่ He, Ne, Ar, Kr, Xe, Rn ซึ่งมีเวเลนซ์อิเล็กตรอนครบ 8 ตัว (ยกเว้น He มี 2 ตัว) ทำให้เสถียรและไม่ว่องไวต่อปฏิกิริยาเคมี"
+            },
+            {
+                question: "ธาตุที่มีสัญลักษณ์ Na คือธาตุอะไร",
+                options: [
+                    "โซเดียม",
+                    "แมกนีเซียม",
+                    "นีออน",
+                    "ไนโตรเจน"
+                ],
+                answer: 0,
+                explanation: "ธาตุที่มีสัญลักษณ์ Na คือ โซเดียม (Sodium) เป็นโลหะแอลคาไลในหมู่ 1A (หมู่ 1) คาบที่ 3 มีเลขอะตอม 11"
+            },
+            {
+                question: "ธาตุที่มีเลขอะตอม 17 คือธาตุอะไร",
+                options: [
+                    "คลอรีน (Cl)",
+                    "แคลเซียม (Ca)",
+                    "โครเมียม (Cr)",
+                    "โคบอลต์ (Co)"
+                ],
+                answer: 0,
+                explanation: "ธาตุที่มีเลขอะตอม 17 คือ คลอรีน (Cl) เป็นธาตุแฮโลเจนในหมู่ 7A (หมู่ 17) คาบที่ 3 มีการจัดเรียงอิเล็กตรอนเป็น 2, 8, 7"
+            },
+            {
+                question: "ธาตุทรานซิชันอยู่ในบริเวณใดของตารางธาตุ",
+                options: [
+                    "ระหว่างหมู่ 2A และ 3A (หมู่ 2 และ 13)",
+                    "หมู่ 1A (หมู่ 1)",
+                    "หมู่ 7A (หมู่ 17)",
+                    "หมู่ 8A (หมู่ 18)"
+                ],
+                answer: 0,
+                explanation: "ธาตุทรานซิชัน (Transition Elements) อยู่ในบริเวณระหว่างหมู่ 2A และ 3A (หมู่ 2 และ 13) ของตารางธาตุ ซึ่งเป็นธาตุที่มีการเติมอิเล็กตรอนในออร์บิทัล d หรือ f ได้แก่ ธาตุในหมู่ 3B-2B (หมู่ 3-12) และธาตุแลนทาไนด์และแอกทิไนด์"
+            },
+            {
+                question: "ธาตุในหมู่ 7A (หรือหมู่ 17) เรียกว่าอะไร",
+                options: [
+                    "ธาตุแฮโลเจน (Halogens)",
+                    "แก๊สเฉื่อย (Noble Gases)",
+                    "โลหะแอลคาไล (Alkali Metals)",
+                    "โลหะแอลคาไลน์เอิร์ท (Alkaline Earth Metals)"
+                ],
+                answer: 0,
+                explanation: "ธาตุในหมู่ 7A (หรือหมู่ 17) เรียกว่า ธาตุแฮโลเจน (Halogens) ได้แก่ F, Cl, Br, I, At ซึ่งมีเวเลนซ์อิเล็กตรอน 7 ตัว ทำให้ว่องไวต่อปฏิกิริยาเคมีมาก มักรับอิเล็กตรอนเพิ่มอีก 1 ตัวเพื่อให้เสถียร"
+            },
+            {
+                question: "ธาตุกัมมันตรังสีคืออะไร",
+                options: [
+                    "ธาตุที่มีนิวเคลียสไม่เสถียรและสลายตัวให้รังสี",
+                    "ธาตุที่มีสีสว่างในความมืด",
+                    "ธาตุที่นำไฟฟ้าได้ดี",
+                    "ธาตุที่มีความหนาแน่นสูง"
+                ],
+                answer: 0,
+                explanation: "ธาตุกัมมันตรังสี (Radioactive Elements) คือธาตุที่มีนิวเคลียสไม่เสถียรและเกิดการสลายตัวให้รังสีต่างๆ เช่น รังสีแอลฟา รังสีเบตา และรังสีแกมมา ตัวอย่างเช่น ยูเรเนียม (U) และเรเดียม (Ra)"
+            },
+            {
+                question: "ข้อใดไม่ใช่รังสีที่เกิดจากการสลายตัวของธาตุกัมมันตรังสี",
+                options: [
+                    "รังสีเอกซ์ (X-ray)",
+                    "รังสีแอลฟา (Alpha)",
+                    "รังสีเบตา (Beta)",
+                    "รังสีแกมมา (Gamma)"
+                ],
+                answer: 0,
+                explanation: "รังสีเอกซ์ (X-ray) ไม่ได้เกิดจากการสลายตัวของธาตุกัมมันตรังสี แต่เกิดจากการเปลี่ยนระดับพลังงานของอิเล็กตรอนในอะตอม หรือการชะลอตัวของอิเล็กตรอนที่มีพลังงานสูง ส่วนรังสีแอลฟา เบตา และแกมมา เกิดจากการสลายตัวของนิวเคลียสของธาตุกัมมันตรังสี"
+            },
+            {
+                question: "ไอโซโทปของไฮโดรเจนที่มีนิวตรอน 1 ตัวเรียกว่าอะไร",
+                options: [
+                    "ดิวเทอเรียม (Deuterium)",
+                    "ทริเทียม (Tritium)",
+                    "โปรเทียม (Protium)",
+                    "เฮเลียม (Helium)"
+                ],
+                answer: 0,
+                explanation: "ดิวเทอเรียม (Deuterium) คือไอโซโทปของไฮโดรเจนที่มีโปรตอน 1 ตัวและนิวตรอน 1 ตัว (เลขมวล 2) เขียนสัญลักษณ์นิวเคลียร์เป็น ²H หรือ D ส่วนไฮโดรเจนปกติ (โปรเทียม) มีเพียงโปรตอน 1 ตัว ไม่มีนิวตรอน และทริเทียมมีนิวตรอน 2 ตัว"
+            },
+            {
+                question: "ข้อใดคือสัญลักษณ์นิวเคลียร์ที่ถูกต้องของคาร์บอน-14",
+                options: [
+                    "¹⁴C",
+                    "¹⁴C⁶",
+                    "C¹⁴",
+                    "⁶C¹⁴"
+                ],
+                answer: 0,
+                explanation: "สัญลักษณ์นิวเคลียร์ที่ถูกต้องของคาร์บอน-14 คือ ¹⁴C โดยตัวเลขด้านบนซ้ายคือเลขมวล (14) และตัวอักษรคือสัญลักษณ์ของธาตุ (C) บางครั้งอาจเขียนเป็น ¹⁴₆C โดยตัวเลขด้านล่างซ้ายคือเลขอะตอม (6)"
+            },
+            {
+                question: "ข้อใดคือประโยชน์ของไอโซโทปคาร์บอน-14",
+                options: [
+                    "ใช้หาอายุวัตถุโบราณ",
+                    "ใช้รักษาโรคมะเร็ง",
+                    "ใช้เป็นเชื้อเพลิงในโรงไฟฟ้านิวเคลียร์",
+                    "ใช้ในการถนอมอาหาร"
+                ],
+                answer: 0,
+                explanation: "ไอโซโทปคาร์บอน-14 (¹⁴C) ใช้ในการหาอายุวัตถุโบราณที่มีองค์ประกอบของสิ่งมีชีวิต เช่น ไม้ กระดูก ผ้า โดยอาศัยหลักการครึ่งชีวิต (half-life) ของคาร์บอน-14 ซึ่งมีค่าประมาณ 5,730 ปี"
+            },
+            {
+                question: "ใครเป็นผู้คิดค้นตารางธาตุคนแรก",
+                options: [
+                    "ดมิทรี เมนเดเลเยฟ (Dmitri Mendeleev)",
+                    "เออร์เนสต์ รัทเทอร์ฟอร์ด (Ernest Rutherford)",
+                    "นีลส์ โบร์ (Niels Bohr)",
+                    "จอห์น ดอลตัน (John Dalton)"
+                ],
+                answer: 0,
+                explanation: "ดมิทรี เมนเดเลเยฟ (Dmitri Mendeleev) เป็นนักเคมีชาวรัสเซียที่คิดค้นตารางธาตุคนแรกในปี ค.ศ. 1869 โดยจัดเรียงธาตุตามมวลอะตอมและสมบัติทางเคมีที่คล้ายกัน และทำนายสมบัติของธาตุที่ยังไม่ถูกค้นพบในขณะนั้น"
+            }
+        ];
+
+        // Variables
+        let currentQuestion = 0;
+        let answers = Array(quizData.length).fill(null);
+        let timers = Array(quizData.length).fill(300); // 5 minutes per question in seconds
+        let currentTimer;
+        let studentName = "";
+        let isLoading = false;
+
+        // DOM Elements
+        const registrationScreen = document.getElementById('registration-screen');
+        const quizScreen = document.getElementById('quiz-screen');
+        const resultsScreen = document.getElementById('results-screen');
+        const studentNameInput = document.getElementById('student-name');
+        const nameError = document.getElementById('name-error');
+        const startQuizBtn = document.getElementById('start-quiz-btn');
+        const startBtnText = document.getElementById('start-btn-text');
+        const loadingSpinner = document.getElementById('loading-spinner');
+        const questionContainer = document.getElementById('question-container');
+        const questionCounter = document.getElementById('question-counter');
+        const timerElement = document.getElementById('timer');
+        const timeProgress = document.getElementById('time-progress');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const questionNav = document.getElementById('question-nav');
+        const resultStudentName = document.getElementById('result-student-name');
+        const scoreValue = document.getElementById('score-value');
+        const scorePercent = document.getElementById('score-percent');
+        const scoreProgress = document.getElementById('score-progress');
+        const scoreFeedback = document.getElementById('score-feedback');
+        const answersContainer = document.getElementById('answers-container');
+        const restartBtn = document.getElementById('restart-btn');
+
+        // Initialize quiz navigation
+        function initQuizNav() {
+            questionNav.innerHTML = '';
+            for (let i = 0; i < quizData.length; i++) {
+                const navItem = document.createElement('div');
+                navItem.className = `question-nav-item ${i === currentQuestion ? 'active' : ''} ${answers[i] !== null ? 'answered' : ''} border-2 ${i === currentQuestion ? 'border-pink-600' : answers[i] !== null ? 'border-pink-300' : 'border-gray-300'}`;
+                navItem.textContent = i + 1;
+                navItem.addEventListener('click', () => {
+                    goToQuestion(i);
+                });
+                questionNav.appendChild(navItem);
+            }
+        }
+
+        // Load question
+        function loadQuestion(index) {
+            const question = quizData[index];
+            
+            questionContainer.innerHTML = `
+                <h2 class="text-xl font-semibold text-pink-700 mb-4">ข้อที่ ${index + 1}: ${question.question}</h2>
+                <div class="space-y-3">
+                    ${question.options.map((option, i) => `
+                        <div class="flex items-center">
+                            <input type="radio" name="answer" id="option${i}" value="${i}" class="option-input hidden" ${answers[index] === i ? 'checked' : ''}>
+                            <label for="option${i}" class="option-label flex items-center w-full p-3 cursor-pointer">
+                                <span class="flex items-center justify-center w-6 h-6 rounded-full border-2 border-pink-400 mr-3">
+                                    <span class="w-3 h-3 rounded-full bg-pink-500 ${answers[index] === i ? 'block' : 'hidden'}"></span>
+                                </span>
+                                <span>${option}</span>
+                            </label>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            
+            // Add event listeners to radio buttons
+            const radioButtons = document.querySelectorAll('.option-input');
+            radioButtons.forEach(radio => {
+                radio.addEventListener('change', () => {
+                    answers[index] = parseInt(radio.value);
+                    updateQuizNav();
+                    
+                    // Enable next button if an answer is selected
+                    nextBtn.disabled = false;
+                });
+            });
+            
+            // Update question counter
+            questionCounter.textContent = `${index + 1}/${quizData.length}`;
+            
+            // Update navigation buttons
+            prevBtn.disabled = index === 0;
+            nextBtn.disabled = answers[index] === null;
+            
+            if (index === quizData.length - 1) {
+                nextBtn.innerHTML = `
+                    ส่งคำตอบ
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                    </svg>
+                `;
+            } else {
+                nextBtn.innerHTML = `
+                    ข้อถัดไป
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                    </svg>
+                `;
+            }
+            
+            // Start timer for this question
+            startTimer(index);
+        }
+
+        // Start timer for a question
+        function startTimer(index) {
+            // Clear previous timer
+            if (currentTimer) {
+                clearInterval(currentTimer);
+            }
+            
+            // Set timer
+            updateTimerDisplay(timers[index]);
+            
+            // Update progress bar
+            const totalTime = 300; // 5 minutes in seconds
+            const percentLeft = (timers[index] / totalTime) * 100;
+            timeProgress.style.width = `${percentLeft}%`;
+            
+            // Start countdown
+            currentTimer = setInterval(() => {
+                timers[index]--;
+                
+                // Update timer display
+                updateTimerDisplay(timers[index]);
+                
+                // Update progress bar
+                const percentLeft = (timers[index] / totalTime) * 100;
+                timeProgress.style.width = `${percentLeft}%`;
+                
+                // If time is up, auto-select an answer and move to next question
+                if (timers[index] <= 0) {
+                    clearInterval(currentTimer);
+                    
+                    // If no answer selected, select the first option
+                    if (answers[index] === null) {
+                        answers[index] = 0;
+                        updateQuizNav();
+                    }
+                    
+                    // Move to next question if not the last one
+                    if (index < quizData.length - 1) {
+                        goToQuestion(index + 1);
+                    } else {
+                        showResults();
+                    }
+                }
+            }, 1000);
+        }
+
+        // Update timer display
+        function updateTimerDisplay(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+            timerElement.textContent = `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+            
+            // Change color when time is running out
+            if (seconds <= 60) {
+                timerElement.classList.add('text-red-500');
+                timeProgress.classList.add('bg-red-500');
+            } else {
+                timerElement.classList.remove('text-red-500');
+                timeProgress.classList.remove('bg-red-500');
+            }
+        }
+
+        // Update quiz navigation
+        function updateQuizNav() {
+            const navItems = questionNav.querySelectorAll('.question-nav-item');
+            navItems.forEach((item, i) => {
+                if (i === currentQuestion) {
+                    item.classList.add('active');
+                    item.classList.add('border-pink-600');
+                } else {
+                    item.classList.remove('active');
+                    item.classList.remove('border-pink-600');
+                }
+                
+                if (answers[i] !== null) {
+                    item.classList.add('answered');
+                    item.classList.add('border-pink-300');
+                    item.classList.remove('border-gray-300');
+                } else {
+                    item.classList.remove('answered');
+                    item.classList.remove('border-pink-300');
+                    item.classList.add('border-gray-300');
+                }
+            });
+        }
+
+        // Go to specific question
+        function goToQuestion(index) {
+            currentQuestion = index;
+            loadQuestion(index);
+            updateQuizNav();
+        }
+
+        // Show results
+        function showResults() {
+            // Clear timer
+            if (currentTimer) {
+                clearInterval(currentTimer);
+            }
+            
+            // Calculate score
+            let score = 0;
+            for (let i = 0; i < quizData.length; i++) {
+                if (answers[i] === quizData[i].answer) {
+                    score++;
+                }
+            }
+            
+            // Update results screen
+            resultStudentName.textContent = studentName;
+            scoreValue.textContent = `${score}/${quizData.length}`;
+            const percentage = Math.round((score / quizData.length) * 100);
+            scorePercent.textContent = `${percentage}%`;
+            scoreProgress.style.width = `${percentage}%`;
+            
+            // Feedback based on score
+            if (percentage >= 80) {
+                scoreFeedback.textContent = "ยอดเยี่ยม! คุณเข้าใจเนื้อหาเป็นอย่างดี";
+                scoreFeedback.classList.add('text-green-600');
+            } else if (percentage >= 60) {
+                scoreFeedback.textContent = "ดีมาก! คุณเข้าใจเนื้อหาส่วนใหญ่";
+                scoreFeedback.classList.add('text-blue-600');
+            } else if (percentage >= 40) {
+                scoreFeedback.textContent = "พอใช้! ควรทบทวนเนื้อหาเพิ่มเติม";
+                scoreFeedback.classList.add('text-yellow-600');
+            } else {
+                scoreFeedback.textContent = "ควรศึกษาเนื้อหาเพิ่มเติม";
+                scoreFeedback.classList.add('text-red-600');
+            }
+            
+            // Generate answer explanations
+            answersContainer.innerHTML = '';
+            for (let i = 0; i < quizData.length; i++) {
+                const question = quizData[i];
+                const userAnswer = answers[i];
+                const isCorrect = userAnswer === question.answer;
+                
+                const answerElement = document.createElement('div');
+                answerElement.className = 'bg-white p-4 rounded-lg shadow-sm';
+                answerElement.innerHTML = `
+                    <div class="flex items-center mb-2">
+                        <span class="font-medium text-gray-700">ข้อที่ ${i + 1}:</span>
+                        <span class="ml-2 px-2 py-1 rounded-full text-xs font-medium ${isCorrect ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                            ${isCorrect ? 'ถูกต้อง' : 'ไม่ถูกต้อง'}
+                        </span>
+                    </div>
+                    <p class="text-gray-800 mb-2">${question.question}</p>
+                    <div class="mb-3">
+                        ${question.options.map((option, j) => `
+                            <div class="flex items-center my-1">
+                                <div class="w-6 h-6 flex items-center justify-center mr-2">
+                                    ${j === question.answer ? 
+                                        `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                        </svg>` : 
+                                        (j === userAnswer ? 
+                                            `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor">
+                                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                                            </svg>` : 
+                                            ''
+                                        )
+                                    }
+                                </div>
+                                <span class="${j === question.answer ? 'font-medium text-green-700' : (j === userAnswer && j !== question.answer ? 'font-medium text-red-700' : '')}">${option}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="bg-blue-50 p-3 rounded-md">
+                        <p class="text-sm text-blue-800"><span class="font-medium">คำอธิบาย:</span> ${question.explanation}</p>
+                    </div>
+                `;
+                
+                answersContainer.appendChild(answerElement);
+            }
+            
+            // Show results screen
+            quizScreen.classList.add('hidden');
+            resultsScreen.classList.remove('hidden');
+        }
+
+        // Event Listeners
+        startQuizBtn.addEventListener('click', () => {
+            studentName = studentNameInput.value.trim();
+            
+            if (studentName === '') {
+                nameError.classList.remove('hidden');
+                studentNameInput.classList.add('border-red-500');
+                studentNameInput.classList.add('shake');
+                setTimeout(() => {
+                    studentNameInput.classList.remove('shake');
+                }, 500);
+                return;
+            }
+            
+            // Show loading state
+            isLoading = true;
+            startBtnText.textContent = "กำลังโหลด...";
+            loadingSpinner.classList.remove('hidden');
+            startQuizBtn.disabled = true;
+            
+            // Simulate loading (in a real app, this would be fetching data)
+            setTimeout(() => {
+                // Hide registration screen and show quiz screen
+                registrationScreen.classList.add('hidden');
+                quizScreen.classList.remove('hidden');
+                
+                // Initialize quiz
+                initQuizNav();
+                loadQuestion(0);
+                
+                // Reset loading state
+                isLoading = false;
+                startBtnText.textContent = "เริ่มทำแบบทดสอบ";
+                loadingSpinner.classList.add('hidden');
+                startQuizBtn.disabled = false;
+            }, 1500);
+        });
+
+        studentNameInput.addEventListener('input', () => {
+            if (studentNameInput.value.trim() !== '') {
+                nameError.classList.add('hidden');
+                studentNameInput.classList.remove('border-red-500');
+            }
+        });
+
+        studentNameInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                startQuizBtn.click();
+            }
+        });
+
+        prevBtn.addEventListener('click', () => {
+            if (currentQuestion > 0) {
+                goToQuestion(currentQuestion - 1);
+            }
+        });
+
+        nextBtn.addEventListener('click', () => {
+            if (currentQuestion < quizData.length - 1) {
+                goToQuestion(currentQuestion + 1);
+            } else {
+                showResults();
+            }
+        });
+
+        restartBtn.addEventListener('click', () => {
+            // Reset quiz state
+            currentQuestion = 0;
+            answers = Array(quizData.length).fill(null);
+            timers = Array(quizData.length).fill(300);
+            
+            // Show registration screen
+            resultsScreen.classList.add('hidden');
+            registrationScreen.classList.remove('hidden');
+            studentNameInput.value = '';
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'93adb3c46418d330',t:'MTc0NjQyMTUyMC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
