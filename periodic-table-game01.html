@@ -1,0 +1,766 @@
+
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เกมตารางธาตุมหาสนุก</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Prompt', sans-serif;
+            background: linear-gradient(135deg, #8BC6EC 0%, #9599E2 100%);
+            min-height: 100vh;
+        }
+        
+        .element {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .element:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        
+        .modal {
+            transition: opacity 0.3s ease;
+        }
+        
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #f00;
+            border-radius: 50%;
+            animation: fall 3s ease-in infinite;
+        }
+        
+        @keyframes fall {
+            0% {
+                transform: translateY(-100px) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+        
+        .progress-bar {
+            transition: width 0.5s ease;
+        }
+    </style>
+</head>
+<body class="p-4">
+    <div class="max-w-6xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden">
+        <div class="p-6">
+            <div class="flex flex-col md:flex-row justify-between items-center mb-6">
+                <h1 class="text-3xl font-bold text-indigo-800 mb-4 md:mb-0">เกมตารางธาตุมหาสนุก</h1>
+                <div class="flex space-x-4">
+                    <button id="game1Btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-lg transition">เกมจับคู่ธาตุ</button>
+                    <button id="game2Btn" class="bg-pink-600 hover:bg-pink-700 text-white font-medium py-2 px-4 rounded-lg transition">เกมทายธาตุ</button>
+                    <button id="game3Btn" class="bg-yellow-500 hover:bg-yellow-600 text-white font-medium py-2 px-4 rounded-lg transition">เกมจัดหมวดหมู่</button>
+                </div>
+            </div>
+            
+            <div id="welcomeScreen" class="text-center py-10">
+                <div class="mb-8">
+                    <svg class="w-32 h-32 mx-auto text-indigo-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M4 4h4v4H4V4zm6 0h4v4h-4V4zm6 0h4v4h-4V4zM4 10h4v4H4v-4zm6 0h4v4h-4v-4zm6 0h4v4h-4v-4zM4 16h4v4H4v-4zm6 0h4v4h-4v-4zm6 0h4v4h-4v-4z"/>
+                    </svg>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">ยินดีต้อนรับสู่เกมตารางธาตุมหาสนุก!</h2>
+                <p class="text-lg text-gray-600 mb-8">เลือกเกมที่คุณต้องการเล่นจากปุ่มด้านบน เพื่อเริ่มการผจญภัยในโลกของตารางธาตุ</p>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+                    <div class="bg-indigo-100 p-6 rounded-lg shadow">
+                        <h3 class="text-xl font-semibold text-indigo-800 mb-2">เกมจับคู่ธาตุ</h3>
+                        <p class="text-gray-700">จับคู่สัญลักษณ์ธาตุกับชื่อที่ถูกต้อง ทดสอบความจำและความรู้เกี่ยวกับธาตุต่างๆ</p>
+                    </div>
+                    <div class="bg-pink-100 p-6 rounded-lg shadow">
+                        <h3 class="text-xl font-semibold text-pink-800 mb-2">เกมทายธาตุ</h3>
+                        <p class="text-gray-700">ทายธาตุจากคำใบ้ที่ให้มา ยิ่งตอบถูกเร็ว คะแนนยิ่งสูง!</p>
+                    </div>
+                    <div class="bg-yellow-100 p-6 rounded-lg shadow">
+                        <h3 class="text-xl font-semibold text-yellow-800 mb-2">เกมจัดหมวดหมู่</h3>
+                        <p class="text-gray-700">จัดธาตุต่างๆ ให้เข้ากลุ่มที่ถูกต้อง ตามหมวดหมู่ในตารางธาตุ</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- เกมจับคู่ธาตุ -->
+            <div id="game1" class="hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-indigo-800">เกมจับคู่ธาตุ</h2>
+                    <div class="flex items-center">
+                        <span class="mr-2 font-medium">คะแนน:</span>
+                        <span id="game1Score" class="bg-indigo-100 text-indigo-800 font-bold py-1 px-3 rounded-lg">0</span>
+                    </div>
+                </div>
+                
+                <div class="bg-indigo-50 p-4 rounded-lg mb-6">
+                    <p class="text-gray-700">จับคู่สัญลักษณ์ธาตุทางซ้ายกับชื่อธาตุทางขวาให้ถูกต้อง</p>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-8">
+                    <div id="symbolsContainer" class="space-y-4"></div>
+                    <div id="namesContainer" class="space-y-4"></div>
+                </div>
+                
+                <div class="mt-8 flex justify-center">
+                    <button id="nextMatchingBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-6 rounded-lg transition">ชุดคำถามถัดไป</button>
+                </div>
+            </div>
+            
+            <!-- เกมทายธาตุ -->
+            <div id="game2" class="hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-pink-800">เกมทายธาตุ</h2>
+                    <div class="flex items-center">
+                        <span class="mr-2 font-medium">คะแนน:</span>
+                        <span id="game2Score" class="bg-pink-100 text-pink-800 font-bold py-1 px-3 rounded-lg">0</span>
+                    </div>
+                </div>
+                
+                <div class="bg-pink-50 p-6 rounded-lg mb-8">
+                    <h3 id="elementClue" class="text-xl font-bold text-gray-800 mb-4">คำใบ้: ธาตุนี้เป็นก๊าซเฉื่อย</h3>
+                    
+                    <div class="relative w-full bg-gray-200 rounded-full h-4 mb-6">
+                        <div id="timeBar" class="bg-pink-600 h-4 rounded-full progress-bar" style="width: 100%"></div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="answerOptions">
+                        <!-- ตัวเลือกจะถูกเพิ่มด้วย JavaScript -->
+                    </div>
+                </div>
+                
+                <div id="resultMessage" class="hidden text-center p-4 rounded-lg mb-6">
+                    <!-- ข้อความผลลัพธ์จะถูกเพิ่มด้วย JavaScript -->
+                </div>
+                
+                <div class="flex justify-center">
+                    <button id="nextGuessBtn" class="bg-pink-600 hover:bg-pink-700 text-white font-medium py-2 px-6 rounded-lg transition">คำถามถัดไป</button>
+                </div>
+            </div>
+            
+            <!-- เกมจัดหมวดหมู่ -->
+            <div id="game3" class="hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-yellow-800">เกมจัดหมวดหมู่</h2>
+                    <div class="flex items-center">
+                        <span class="mr-2 font-medium">คะแนน:</span>
+                        <span id="game3Score" class="bg-yellow-100 text-yellow-800 font-bold py-1 px-3 rounded-lg">0</span>
+                    </div>
+                </div>
+                
+                <div class="bg-yellow-50 p-4 rounded-lg mb-6">
+                    <p class="text-gray-700">ลากธาตุไปวางในหมวดหมู่ที่ถูกต้อง</p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div class="bg-red-100 p-4 rounded-lg">
+                        <h3 class="text-lg font-semibold text-red-800 mb-2 text-center">โลหะ</h3>
+                        <div id="metalGroup" class="min-h-[150px] border-2 border-dashed border-red-300 rounded-lg p-2 flex flex-wrap gap-2" ondrop="drop(event, 'metal')" ondragover="allowDrop(event)"></div>
+                    </div>
+                    <div class="bg-blue-100 p-4 rounded-lg">
+                        <h3 class="text-lg font-semibold text-blue-800 mb-2 text-center">อโลหะ</h3>
+                        <div id="nonmetalGroup" class="min-h-[150px] border-2 border-dashed border-blue-300 rounded-lg p-2 flex flex-wrap gap-2" ondrop="drop(event, 'nonmetal')" ondragover="allowDrop(event)"></div>
+                    </div>
+                    <div class="bg-purple-100 p-4 rounded-lg">
+                        <h3 class="text-lg font-semibold text-purple-800 mb-2 text-center">กึ่งโลหะ</h3>
+                        <div id="metalloidGroup" class="min-h-[150px] border-2 border-dashed border-purple-300 rounded-lg p-2 flex flex-wrap gap-2" ondrop="drop(event, 'metalloid')" ondragover="allowDrop(event)"></div>
+                    </div>
+                </div>
+                
+                <div id="elementsToSort" class="flex flex-wrap gap-3 mb-6 justify-center">
+                    <!-- ธาตุจะถูกเพิ่มด้วย JavaScript -->
+                </div>
+                
+                <div class="flex justify-center">
+                    <button id="checkCategoriesBtn" class="bg-yellow-500 hover:bg-yellow-600 text-white font-medium py-2 px-6 rounded-lg transition">ตรวจคำตอบ</button>
+                    <button id="nextCategoryBtn" class="ml-4 bg-yellow-500 hover:bg-yellow-600 text-white font-medium py-2 px-6 rounded-lg transition hidden">ชุดถัดไป</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal สำหรับแสดงผลลัพธ์ -->
+    <div id="resultModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden modal">
+        <div class="bg-white rounded-xl p-8 max-w-md w-full mx-4">
+            <div id="confettiContainer"></div>
+            <div class="text-center">
+                <div id="resultIcon" class="mx-auto mb-4 text-green-500">
+                    <svg class="w-16 h-16 mx-auto" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                    </svg>
+                </div>
+                <h3 id="resultTitle" class="text-2xl font-bold text-gray-800 mb-2">ยอดเยี่ยม!</h3>
+                <p id="resultText" class="text-gray-600 mb-6">คุณทำได้ดีมาก</p>
+                <button id="closeResultBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-6 rounded-lg transition">ปิด</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ข้อมูลธาตุ
+        const elements = [
+            { symbol: "H", name: "ไฮโดรเจน", group: "nonmetal", clues: ["เป็นธาตุที่เบาที่สุด", "มีเลขอะตอม 1", "พบมากในน้ำ"] },
+            { symbol: "He", name: "ฮีเลียม", group: "nonmetal", clues: ["เป็นก๊าซเฉื่อย", "ใช้เติมในบอลลูน", "มีเลขอะตอม 2"] },
+            { symbol: "Li", name: "ลิเทียม", group: "metal", clues: ["เป็นโลหะอัลคาไล", "ใช้ในแบตเตอรี่", "มีเลขอะตอม 3"] },
+            { symbol: "Be", name: "เบริลเลียม", group: "metal", clues: ["เป็นโลหะอัลคาไลน์เอิร์ท", "มีเลขอะตอม 4", "มีความแข็งสูง"] },
+            { symbol: "B", name: "โบรอน", group: "metalloid", clues: ["เป็นธาตุกึ่งโลหะ", "มีเลขอะตอม 5", "ใช้ในการผลิตแก้วโบโรซิลิเกต"] },
+            { symbol: "C", name: "คาร์บอน", group: "nonmetal", clues: ["เป็นองค์ประกอบหลักของสิ่งมีชีวิต", "มีเลขอะตอม 6", "พบในเพชรและแกรไฟต์"] },
+            { symbol: "N", name: "ไนโตรเจน", group: "nonmetal", clues: ["เป็นองค์ประกอบหลักของอากาศ", "มีเลขอะตอม 7", "ใช้ในการผลิตปุ๋ย"] },
+            { symbol: "O", name: "ออกซิเจน", group: "nonmetal", clues: ["จำเป็นสำหรับการหายใจ", "มีเลขอะตอม 8", "เป็นองค์ประกอบของน้ำ"] },
+            { symbol: "F", name: "ฟลูออรีน", group: "nonmetal", clues: ["เป็นธาตุฮาโลเจน", "มีเลขอะตอม 9", "มีความว่องไวในการทำปฏิกิริยาสูงมาก"] },
+            { symbol: "Ne", name: "นีออน", group: "nonmetal", clues: ["เป็นก๊าซเฉื่อย", "มีเลขอะตอม 10", "ใช้ในป้ายไฟนีออน"] },
+            { symbol: "Na", name: "โซเดียม", group: "metal", clues: ["เป็นโลหะอัลคาไล", "มีเลขอะตอม 11", "ทำปฏิกิริยารุนแรงกับน้ำ"] },
+            { symbol: "Mg", name: "แมกนีเซียม", group: "metal", clues: ["เป็นโลหะอัลคาไลน์เอิร์ท", "มีเลขอะตอม 12", "เผาไหม้ให้แสงสว่างจ้า"] },
+            { symbol: "Al", name: "อะลูมิเนียม", group: "metal", clues: ["เป็นโลหะที่เบา", "มีเลขอะตอม 13", "ใช้ทำกระป๋องเครื่องดื่ม"] },
+            { symbol: "Si", name: "ซิลิคอน", group: "metalloid", clues: ["เป็นธาตุกึ่งโลหะ", "มีเลขอะตอม 14", "ใช้ในอุปกรณ์อิเล็กทรอนิกส์"] },
+            { symbol: "P", name: "ฟอสฟอรัส", group: "nonmetal", clues: ["เป็นธาตุที่เรืองแสงได้", "มีเลขอะตอม 15", "สำคัญในโครงสร้าง DNA"] },
+            { symbol: "S", name: "ซัลเฟอร์", group: "nonmetal", clues: ["มีสีเหลือง", "มีเลขอะตอม 16", "มีกลิ่นเหมือนไข่เน่า"] },
+            { symbol: "Cl", name: "คลอรีน", group: "nonmetal", clues: ["เป็นธาตุฮาโลเจน", "มีเลขอะตอม 17", "ใช้ในการฆ่าเชื้อในสระว่ายน้ำ"] },
+            { symbol: "Ar", name: "อาร์กอน", group: "nonmetal", clues: ["เป็นก๊าซเฉื่อย", "มีเลขอะตอม 18", "พบมากในบรรยากาศโลก"] },
+            { symbol: "K", name: "โพแทสเซียม", group: "metal", clues: ["เป็นโลหะอัลคาไล", "มีเลขอะตอม 19", "สำคัญต่อการทำงานของหัวใจ"] },
+            { symbol: "Ca", name: "แคลเซียม", group: "metal", clues: ["เป็นโลหะอัลคาไลน์เอิร์ท", "มีเลขอะตอม 20", "พบมากในกระดูกและฟัน"] },
+            { symbol: "Fe", name: "เหล็ก", group: "metal", clues: ["เป็นโลหะทรานซิชัน", "มีเลขอะตอม 26", "เป็นองค์ประกอบของเลือด"] },
+            { symbol: "Cu", name: "ทองแดง", group: "metal", clues: ["เป็นโลหะทรานซิชัน", "มีเลขอะตอม 29", "นำไฟฟ้าได้ดี"] },
+            { symbol: "Zn", name: "สังกะสี", group: "metal", clues: ["เป็นโลหะทรานซิชัน", "มีเลขอะตอม 30", "ใช้เคลือบเหล็กกันสนิม"] },
+            { symbol: "Br", name: "โบรมีน", group: "nonmetal", clues: ["เป็นธาตุฮาโลเจน", "มีเลขอะตอม 35", "เป็นของเหลวสีน้ำตาลแดง"] },
+            { symbol: "Ag", name: "เงิน", group: "metal", clues: ["เป็นโลหะมีค่า", "มีเลขอะตอม 47", "นำไฟฟ้าได้ดีที่สุด"] },
+            { symbol: "I", name: "ไอโอดีน", group: "nonmetal", clues: ["เป็นธาตุฮาโลเจน", "มีเลขอะตอม 53", "จำเป็นสำหรับการทำงานของต่อมไทรอยด์"] },
+            { symbol: "Au", name: "ทองคำ", group: "metal", clues: ["เป็นโลหะมีค่า", "มีเลขอะตอม 79", "ไม่ทำปฏิกิริยากับออกซิเจนในอากาศ"] },
+            { symbol: "Hg", name: "ปรอท", group: "metal", clues: ["เป็นโลหะที่เป็นของเหลวที่อุณหภูมิห้อง", "มีเลขอะตอม 80", "มีพิษต่อระบบประสาท"] },
+            { symbol: "Pb", name: "ตะกั่ว", group: "metal", clues: ["เป็นโลหะหนัก", "มีเลขอะตอม 82", "ใช้ในแบตเตอรี่รถยนต์"] }
+        ];
+
+        // ตัวแปรสำหรับเก็บคะแนน
+        let game1Score = 0;
+        let game2Score = 0;
+        let game3Score = 0;
+        
+        // ตัวแปรสำหรับเกมจับคู่
+        let selectedSymbol = null;
+        let selectedName = null;
+        let matchedPairs = 0;
+        let currentMatchingElements = [];
+        
+        // ตัวแปรสำหรับเกมทายธาตุ
+        let currentGuessElement = null;
+        let timerInterval = null;
+        let timeLeft = 10;
+        
+        // ตัวแปรสำหรับเกมจัดหมวดหมู่
+        let currentSortingElements = [];
+        
+        // เริ่มต้นการทำงาน
+        document.addEventListener('DOMContentLoaded', function() {
+            // เพิ่ม Event Listeners สำหรับปุ่มเลือกเกม
+            document.getElementById('game1Btn').addEventListener('click', showGame1);
+            document.getElementById('game2Btn').addEventListener('click', showGame2);
+            document.getElementById('game3Btn').addEventListener('click', showGame3);
+            
+            // Event Listeners สำหรับปุ่มในเกม
+            document.getElementById('nextMatchingBtn').addEventListener('click', setupMatchingGame);
+            document.getElementById('nextGuessBtn').addEventListener('click', setupGuessGame);
+            document.getElementById('checkCategoriesBtn').addEventListener('click', checkCategories);
+            document.getElementById('nextCategoryBtn').addEventListener('click', setupCategoryGame);
+            document.getElementById('closeResultBtn').addEventListener('click', closeResultModal);
+        });
+        
+        // ฟังก์ชันสำหรับแสดงเกมต่างๆ
+        function showGame1() {
+            hideAllGames();
+            document.getElementById('game1').classList.remove('hidden');
+            setupMatchingGame();
+        }
+        
+        function showGame2() {
+            hideAllGames();
+            document.getElementById('game2').classList.remove('hidden');
+            setupGuessGame();
+        }
+        
+        function showGame3() {
+            hideAllGames();
+            document.getElementById('game3').classList.remove('hidden');
+            setupCategoryGame();
+        }
+        
+        function hideAllGames() {
+            document.getElementById('welcomeScreen').classList.add('hidden');
+            document.getElementById('game1').classList.add('hidden');
+            document.getElementById('game2').classList.add('hidden');
+            document.getElementById('game3').classList.add('hidden');
+        }
+        
+        // ฟังก์ชันสำหรับเกมจับคู่
+        function setupMatchingGame() {
+            // ล้างค่าเดิม
+            document.getElementById('symbolsContainer').innerHTML = '';
+            document.getElementById('namesContainer').innerHTML = '';
+            selectedSymbol = null;
+            selectedName = null;
+            matchedPairs = 0;
+            
+            // สุ่มธาตุ 5 ตัวสำหรับเกมจับคู่
+            currentMatchingElements = getRandomElements(5);
+            
+            // สร้างปุ่มสัญลักษณ์ธาตุ
+            const symbolsContainer = document.getElementById('symbolsContainer');
+            const shuffledSymbols = [...currentMatchingElements].sort(() => Math.random() - 0.5);
+            
+            shuffledSymbols.forEach(element => {
+                const symbolBtn = document.createElement('button');
+                symbolBtn.className = 'element w-full bg-white border-2 border-indigo-300 rounded-lg p-4 flex items-center justify-center text-xl font-bold text-indigo-800 hover:bg-indigo-100 transition';
+                symbolBtn.dataset.symbol = element.symbol;
+                symbolBtn.textContent = element.symbol;
+                symbolBtn.addEventListener('click', selectSymbol);
+                symbolsContainer.appendChild(symbolBtn);
+            });
+            
+            // สร้างปุ่มชื่อธาตุ
+            const namesContainer = document.getElementById('namesContainer');
+            const shuffledNames = [...currentMatchingElements].sort(() => Math.random() - 0.5);
+            
+            shuffledNames.forEach(element => {
+                const nameBtn = document.createElement('button');
+                nameBtn.className = 'element w-full bg-white border-2 border-indigo-300 rounded-lg p-4 flex items-center justify-center text-lg font-medium text-gray-700 hover:bg-indigo-100 transition';
+                nameBtn.dataset.name = element.name;
+                nameBtn.dataset.symbol = element.symbol;
+                nameBtn.textContent = element.name;
+                nameBtn.addEventListener('click', selectName);
+                namesContainer.appendChild(nameBtn);
+            });
+        }
+        
+        function selectSymbol(event) {
+            if (selectedSymbol) {
+                selectedSymbol.classList.remove('bg-indigo-200', 'border-indigo-500');
+                selectedSymbol.classList.add('bg-white', 'border-indigo-300');
+            }
+            
+            selectedSymbol = event.target;
+            selectedSymbol.classList.remove('bg-white', 'border-indigo-300');
+            selectedSymbol.classList.add('bg-indigo-200', 'border-indigo-500');
+            
+            checkMatch();
+        }
+        
+        function selectName(event) {
+            if (selectedName) {
+                selectedName.classList.remove('bg-indigo-200', 'border-indigo-500');
+                selectedName.classList.add('bg-white', 'border-indigo-300');
+            }
+            
+            selectedName = event.target;
+            selectedName.classList.remove('bg-white', 'border-indigo-300');
+            selectedName.classList.add('bg-indigo-200', 'border-indigo-500');
+            
+            checkMatch();
+        }
+        
+        function checkMatch() {
+            if (selectedSymbol && selectedName) {
+                if (selectedSymbol.dataset.symbol === selectedName.dataset.symbol) {
+                    // จับคู่ถูกต้อง
+                    selectedSymbol.classList.remove('bg-indigo-200', 'border-indigo-500');
+                    selectedName.classList.remove('bg-indigo-200', 'border-indigo-500');
+                    
+                    selectedSymbol.classList.add('bg-green-200', 'border-green-500', 'opacity-50');
+                    selectedName.classList.add('bg-green-200', 'border-green-500', 'opacity-50');
+                    
+                    selectedSymbol.disabled = true;
+                    selectedName.disabled = true;
+                    
+                    game1Score += 10;
+                    document.getElementById('game1Score').textContent = game1Score;
+                    
+                    matchedPairs++;
+                    
+                    // ตรวจสอบว่าจับคู่ครบหมดแล้วหรือไม่
+                    if (matchedPairs === currentMatchingElements.length) {
+                        showResultModal('ยอดเยี่ยม!', 'คุณจับคู่ธาตุได้ถูกต้องทั้งหมด', true);
+                    }
+                } else {
+                    // จับคู่ไม่ถูกต้อง
+                    const wrongSymbol = selectedSymbol;
+                    const wrongName = selectedName;
+                    
+                    wrongSymbol.classList.remove('bg-indigo-200', 'border-indigo-500');
+                    wrongName.classList.remove('bg-indigo-200', 'border-indigo-500');
+                    
+                    wrongSymbol.classList.add('bg-red-200', 'border-red-500');
+                    wrongName.classList.add('bg-red-200', 'border-red-500');
+                    
+                    setTimeout(() => {
+                        wrongSymbol.classList.remove('bg-red-200', 'border-red-500');
+                        wrongName.classList.remove('bg-red-200', 'border-red-500');
+                        
+                        wrongSymbol.classList.add('bg-white', 'border-indigo-300');
+                        wrongName.classList.add('bg-white', 'border-indigo-300');
+                    }, 1000);
+                    
+                    if (game1Score > 0) game1Score -= 2;
+                    document.getElementById('game1Score').textContent = game1Score;
+                }
+                
+                selectedSymbol = null;
+                selectedName = null;
+            }
+        }
+        
+        // ฟังก์ชันสำหรับเกมทายธาตุ
+        function setupGuessGame() {
+            // ล้างค่าเดิม
+            clearInterval(timerInterval);
+            document.getElementById('resultMessage').classList.add('hidden');
+            
+            // สุ่มธาตุสำหรับคำถาม
+            const allElements = [...elements];
+            currentGuessElement = allElements[Math.floor(Math.random() * allElements.length)];
+            
+            // สุ่มคำใบ้
+            const clue = currentGuessElement.clues[Math.floor(Math.random() * currentGuessElement.clues.length)];
+            document.getElementById('elementClue').textContent = `คำใบ้: ${clue}`;
+            
+            // สร้างตัวเลือก
+            const answerOptions = document.getElementById('answerOptions');
+            answerOptions.innerHTML = '';
+            
+            // สร้างตัวเลือกที่ถูกต้อง 1 ตัว และตัวเลือกที่ผิด 3 ตัว
+            const options = [currentGuessElement];
+            
+            while (options.length < 4) {
+                const randomElement = allElements[Math.floor(Math.random() * allElements.length)];
+                if (!options.some(e => e.symbol === randomElement.symbol)) {
+                    options.push(randomElement);
+                }
+            }
+            
+            // สลับตำแหน่งตัวเลือก
+            const shuffledOptions = options.sort(() => Math.random() - 0.5);
+            
+            shuffledOptions.forEach(element => {
+                const optionBtn = document.createElement('button');
+                optionBtn.className = 'bg-white border-2 border-pink-300 rounded-lg p-4 flex flex-col items-center justify-center hover:bg-pink-100 transition';
+                optionBtn.dataset.symbol = element.symbol;
+                
+                const symbolSpan = document.createElement('span');
+                symbolSpan.className = 'text-xl font-bold text-pink-800 mb-1';
+                symbolSpan.textContent = element.symbol;
+                
+                const nameSpan = document.createElement('span');
+                nameSpan.className = 'text-sm text-gray-700';
+                nameSpan.textContent = element.name;
+                
+                optionBtn.appendChild(symbolSpan);
+                optionBtn.appendChild(nameSpan);
+                
+                optionBtn.addEventListener('click', checkGuess);
+                answerOptions.appendChild(optionBtn);
+            });
+            
+            // เริ่มจับเวลา
+            timeLeft = 10;
+            document.getElementById('timeBar').style.width = '100%';
+            
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                const percentage = (timeLeft / 10) * 100;
+                document.getElementById('timeBar').style.width = `${percentage}%`;
+                
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    showResultMessage(false, "หมดเวลา! ลองอีกครั้ง");
+                }
+            }, 1000);
+        }
+        
+        function checkGuess(event) {
+            clearInterval(timerInterval);
+            
+            const selectedOption = event.currentTarget;
+            const isCorrect = selectedOption.dataset.symbol === currentGuessElement.symbol;
+            
+            if (isCorrect) {
+                // ตอบถูก
+                const pointsEarned = Math.max(1, timeLeft) * 10;
+                game2Score += pointsEarned;
+                document.getElementById('game2Score').textContent = game2Score;
+                
+                selectedOption.classList.remove('border-pink-300');
+                selectedOption.classList.add('bg-green-200', 'border-green-500');
+                
+                showResultMessage(true, `ถูกต้อง! +${pointsEarned} คะแนน`);
+            } else {
+                // ตอบผิด
+                selectedOption.classList.remove('border-pink-300');
+                selectedOption.classList.add('bg-red-200', 'border-red-500');
+                
+                // แสดงคำตอบที่ถูกต้อง
+                const options = document.querySelectorAll('#answerOptions button');
+                options.forEach(option => {
+                    if (option.dataset.symbol === currentGuessElement.symbol) {
+                        option.classList.remove('border-pink-300');
+                        option.classList.add('bg-green-200', 'border-green-500');
+                    }
+                });
+                
+                showResultMessage(false, "ไม่ถูกต้อง ลองอีกครั้ง");
+            }
+        }
+        
+        function showResultMessage(isSuccess, message) {
+            const resultMessage = document.getElementById('resultMessage');
+            resultMessage.innerHTML = '';
+            resultMessage.classList.remove('hidden', 'bg-green-100', 'text-green-800', 'bg-red-100', 'text-red-800');
+            
+            if (isSuccess) {
+                resultMessage.classList.add('bg-green-100', 'text-green-800');
+            } else {
+                resultMessage.classList.add('bg-red-100', 'text-red-800');
+            }
+            
+            resultMessage.textContent = message;
+        }
+        
+        // ฟังก์ชันสำหรับเกมจัดหมวดหมู่
+        function setupCategoryGame() {
+            // ล้างค่าเดิม
+            document.getElementById('metalGroup').innerHTML = '';
+            document.getElementById('nonmetalGroup').innerHTML = '';
+            document.getElementById('metalloidGroup').innerHTML = '';
+            document.getElementById('elementsToSort').innerHTML = '';
+            document.getElementById('checkCategoriesBtn').classList.remove('hidden');
+            document.getElementById('nextCategoryBtn').classList.add('hidden');
+            
+            // สุ่มธาตุสำหรับเกม
+            currentSortingElements = [];
+            
+            // เลือกโลหะ 3 ตัว
+            const metals = elements.filter(e => e.group === 'metal');
+            while (currentSortingElements.filter(e => e.group === 'metal').length < 3) {
+                const randomMetal = metals[Math.floor(Math.random() * metals.length)];
+                if (!currentSortingElements.some(e => e.symbol === randomMetal.symbol)) {
+                    currentSortingElements.push(randomMetal);
+                }
+            }
+            
+            // เลือกอโลหะ 3 ตัว
+            const nonmetals = elements.filter(e => e.group === 'nonmetal');
+            while (currentSortingElements.filter(e => e.group === 'nonmetal').length < 3) {
+                const randomNonmetal = nonmetals[Math.floor(Math.random() * nonmetals.length)];
+                if (!currentSortingElements.some(e => e.symbol === randomNonmetal.symbol)) {
+                    currentSortingElements.push(randomNonmetal);
+                }
+            }
+            
+            // เลือกกึ่งโลหะ 2 ตัว
+            const metalloids = elements.filter(e => e.group === 'metalloid');
+            while (currentSortingElements.filter(e => e.group === 'metalloid').length < 2) {
+                const randomMetalloid = metalloids[Math.floor(Math.random() * metalloids.length)];
+                if (!currentSortingElements.some(e => e.symbol === randomMetalloid.symbol)) {
+                    currentSortingElements.push(randomMetalloid);
+                }
+            }
+            
+            // สลับตำแหน่งธาตุ
+            const shuffledElements = [...currentSortingElements].sort(() => Math.random() - 0.5);
+            
+            // สร้างธาตุสำหรับลาก
+            const elementsContainer = document.getElementById('elementsToSort');
+            
+            shuffledElements.forEach(element => {
+                const elementDiv = document.createElement('div');
+                elementDiv.className = 'element bg-white border-2 border-yellow-300 rounded-lg p-3 flex flex-col items-center justify-center cursor-move';
+                elementDiv.draggable = true;
+                elementDiv.dataset.symbol = element.symbol;
+                elementDiv.dataset.group = element.group;
+                
+                const symbolSpan = document.createElement('span');
+                symbolSpan.className = 'text-xl font-bold text-yellow-800 mb-1';
+                symbolSpan.textContent = element.symbol;
+                
+                const nameSpan = document.createElement('span');
+                nameSpan.className = 'text-sm text-gray-700';
+                nameSpan.textContent = element.name;
+                
+                elementDiv.appendChild(symbolSpan);
+                elementDiv.appendChild(nameSpan);
+                
+                elementDiv.addEventListener('dragstart', drag);
+                elementsContainer.appendChild(elementDiv);
+            });
+        }
+        
+        function drag(event) {
+            event.dataTransfer.setData("text", event.target.dataset.symbol);
+        }
+        
+        function allowDrop(event) {
+            event.preventDefault();
+        }
+        
+        function drop(event, targetGroup) {
+            event.preventDefault();
+            const symbol = event.dataTransfer.getData("text");
+            const elementToMove = document.querySelector(`[data-symbol="${symbol}"]`);
+            
+            if (elementToMove) {
+                event.target.closest('div[id$="Group"]').appendChild(elementToMove);
+            }
+        }
+        
+        function checkCategories() {
+            let allCorrect = true;
+            let correctCount = 0;
+            
+            // ตรวจสอบโลหะ
+            const metalElements = document.querySelectorAll('#metalGroup .element');
+            metalElements.forEach(element => {
+                if (element.dataset.group === 'metal') {
+                    element.classList.remove('border-yellow-300');
+                    element.classList.add('border-green-500', 'bg-green-100');
+                    correctCount++;
+                } else {
+                    element.classList.remove('border-yellow-300');
+                    element.classList.add('border-red-500', 'bg-red-100');
+                    allCorrect = false;
+                }
+            });
+            
+            // ตรวจสอบอโลหะ
+            const nonmetalElements = document.querySelectorAll('#nonmetalGroup .element');
+            nonmetalElements.forEach(element => {
+                if (element.dataset.group === 'nonmetal') {
+                    element.classList.remove('border-yellow-300');
+                    element.classList.add('border-green-500', 'bg-green-100');
+                    correctCount++;
+                } else {
+                    element.classList.remove('border-yellow-300');
+                    element.classList.add('border-red-500', 'bg-red-100');
+                    allCorrect = false;
+                }
+            });
+            
+            // ตรวจสอบกึ่งโลหะ
+            const metalloidElements = document.querySelectorAll('#metalloidGroup .element');
+            metalloidElements.forEach(element => {
+                if (element.dataset.group === 'metalloid') {
+                    element.classList.remove('border-yellow-300');
+                    element.classList.add('border-green-500', 'bg-green-100');
+                    correctCount++;
+                } else {
+                    element.classList.remove('border-yellow-300');
+                    element.classList.add('border-red-500', 'bg-red-100');
+                    allCorrect = false;
+                }
+            });
+            
+            // คำนวณคะแนน
+            const earnedPoints = correctCount * 5;
+            game3Score += earnedPoints;
+            document.getElementById('game3Score').textContent = game3Score;
+            
+            // แสดงผลลัพธ์
+            if (allCorrect) {
+                showResultModal('ยอดเยี่ยม!', `คุณจัดหมวดหมู่ธาตุได้ถูกต้องทั้งหมด +${earnedPoints} คะแนน`, true);
+            } else {
+                showResultModal('ลองอีกครั้ง', `คุณจัดหมวดหมู่ธาตุถูกต้อง ${correctCount} ธาตุ +${earnedPoints} คะแนน`, false);
+            }
+            
+            // ซ่อนปุ่มตรวจสอบและแสดงปุ่มถัดไป
+            document.getElementById('checkCategoriesBtn').classList.add('hidden');
+            document.getElementById('nextCategoryBtn').classList.remove('hidden');
+        }
+        
+        // ฟังก์ชันสำหรับแสดง Modal ผลลัพธ์
+        function showResultModal(title, message, isSuccess) {
+            const modal = document.getElementById('resultModal');
+            const resultIcon = document.getElementById('resultIcon');
+            const resultTitle = document.getElementById('resultTitle');
+            const resultText = document.getElementById('resultText');
+            
+            resultTitle.textContent = title;
+            resultText.textContent = message;
+            
+            if (isSuccess) {
+                resultIcon.innerHTML = `
+                    <svg class="w-16 h-16 mx-auto text-green-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                    </svg>
+                `;
+                createConfetti();
+            } else {
+                resultIcon.innerHTML = `
+                    <svg class="w-16 h-16 mx-auto text-yellow-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                    </svg>
+                `;
+            }
+            
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+        
+        function closeResultModal() {
+            const modal = document.getElementById('resultModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            
+            const confettiContainer = document.getElementById('confettiContainer');
+            confettiContainer.innerHTML = '';
+        }
+        
+        // ฟังก์ชันสร้าง Confetti
+        function createConfetti() {
+            const confettiContainer = document.getElementById('confettiContainer');
+            confettiContainer.innerHTML = '';
+            
+            const colors = ['#FF5252', '#FFD740', '#64FFDA', '#448AFF', '#E040FB'];
+            
+            for (let i = 0; i < 50; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = `${Math.random() * 100}%`;
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.width = `${Math.random() * 10 + 5}px`;
+                confetti.style.height = `${Math.random() * 10 + 5}px`;
+                confetti.style.animationDuration = `${Math.random() * 3 + 2}s`;
+                confetti.style.animationDelay = `${Math.random() * 2}s`;
+                
+                confettiContainer.appendChild(confetti);
+            }
+        }
+        
+        // ฟังก์ชันสุ่มธาตุ
+        function getRandomElements(count) {
+            const shuffled = [...elements].sort(() => Math.random() - 0.5);
+            return shuffled.slice(0, count);
+        }
+        
+        // ฟังก์ชันสำหรับ Drag and Drop
+        function drag(event) {
+            event.dataTransfer.setData("text", event.target.dataset.symbol);
+        }
+        
+        function allowDrop(event) {
+            event.preventDefault();
+        }
+        
+        function drop(event, targetGroup) {
+            event.preventDefault();
+            const symbol = event.dataTransfer.getData("text");
+            const elementToMove = document.querySelector(`[data-symbol="${symbol}"]`);
+            
+            if (elementToMove) {
+                event.target.appendChild(elementToMove);
+            }
+        }
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'93b02500e32737db',t:'MTc0NjQ0NzEzMC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
